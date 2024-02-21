@@ -2,14 +2,20 @@ package com.hafidtech.ecommerceapi.controller;
 
 import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.hafidtech.ecommerceapi.dto.AuthenticationRequest;
+import com.hafidtech.ecommerceapi.dto.SignupRequest;
+import com.hafidtech.ecommerceapi.dto.UserDto;
 import com.hafidtech.ecommerceapi.entity.User;
 import com.hafidtech.ecommerceapi.repository.UserRepository;
+import com.hafidtech.ecommerceapi.services.auth.AuthService;
+import com.hafidtech.ecommerceapi.services.auth.AuthServiceImpl;
 import com.hafidtech.ecommerceapi.utils.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -38,6 +44,8 @@ public class AuthController {
 
     public static final String HEADER_STRING = "Authorization";
 
+    private final AuthServiceImpl authServiceImpl;
+
 
     @PostMapping("/authenticate")
     public void createAuthenticationToken(@RequestBody AuthenticationRequest authenticationRequest,
@@ -46,7 +54,7 @@ public class AuthController {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authenticationRequest.getUsername(),
                     authenticationRequest.getPassword()));
         } catch (BadCredentialsException e) {
-            throw new BadCredentialsException("Incorret username or password");
+            throw new BadCredentialsException("Incorrect username or password");
         }
 
         final UserDetails userDetails = userDetailsService.loadUserByUsername(authenticationRequest.getUsername());
@@ -62,5 +70,15 @@ public class AuthController {
 
             response.addHeader(HEADER_STRING, TOKEN_PREFIX + jwt);
         }
+    }
+
+    @PostMapping("/sign-up")
+    public ResponseEntity<?> signupUser(@RequestBody SignupRequest signupRequest) {
+        if(authServiceImpl.hasUserWithEmail(signupRequest.getEmail())) {
+            return new ResponseEntity<>("User already exists", HttpStatus.NOT_ACCEPTABLE);
+        }
+
+        UserDto userDto = authServiceImpl.createUser(signupRequest);
+        return new ResponseEntity<>(userDto, HttpStatus.OK);
     }
 }
