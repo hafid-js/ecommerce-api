@@ -2,10 +2,14 @@ package com.hafidtech.ecommerceapi.services.auth;
 
 import com.hafidtech.ecommerceapi.dto.SignupRequest;
 import com.hafidtech.ecommerceapi.dto.UserDto;
+import com.hafidtech.ecommerceapi.entity.Order;
 import com.hafidtech.ecommerceapi.entity.User;
+import com.hafidtech.ecommerceapi.enums.OrderStatus;
 import com.hafidtech.ecommerceapi.enums.UserRole;
+import com.hafidtech.ecommerceapi.repository.OrderRepository;
 import com.hafidtech.ecommerceapi.repository.UserRepository;
 import jakarta.annotation.PostConstruct;
+import org.aspectj.weaver.ast.Or;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,6 +23,9 @@ public class AuthServiceImpl implements AuthService {
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
+    @Autowired
+    private OrderRepository orderRepository;
+
     public UserDto createUser(SignupRequest signupRequest) {
 
         User user = new User();
@@ -28,6 +35,14 @@ public class AuthServiceImpl implements AuthService {
         user.setPassword(new BCryptPasswordEncoder().encode(signupRequest.getPassword()));
         user.setRole(UserRole.CUSTOMER);
         User createdUser = userRepository.save(user);
+
+        Order order = new Order();
+        order.setAmount(0L);
+        order.setTotalAmount(0L);
+        order.setDiscount(0L);
+        order.setUser(createdUser);
+        order.setOrderStatus(OrderStatus.Pending);
+        orderRepository.save(order);
 
         UserDto userDto = new UserDto();
         userDto.setId(createdUser.getId());
