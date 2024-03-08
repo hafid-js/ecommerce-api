@@ -31,7 +31,7 @@ public class SimpleCorsFilter implements Filter {
         Map<String, String> map = new HashMap<>();
         String originHeader = request.getHeader("origin");
         response.setHeader("Access-Control-Allow-Origin", originHeader);
-        response.setHeader("Access-Control-Allow-Methods", "POST, GET, PUT, OPTIONS, DELETE");
+        response.setHeader("Access-Control-Allow-Methods", "*");
         response.setHeader("Access-Control-Max-Age", "3600");
         response.setHeader("Access-Control-Allow-Headers", "*");
 
@@ -40,5 +40,15 @@ public class SimpleCorsFilter implements Filter {
         } else {
             chain.doFilter(req, res);
         }
+    }
+
+    @Override
+    public void init(FilterConfig filterConfig) throws ServletException {
+        Filter.super.init(filterConfig);
+    }
+
+    @Override
+    public void destroy() {
+        Filter.super.destroy();
     }
 }

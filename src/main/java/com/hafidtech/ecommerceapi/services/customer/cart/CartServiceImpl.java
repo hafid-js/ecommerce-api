@@ -1,6 +1,8 @@
 package com.hafidtech.ecommerceapi.services.customer.cart;
 
 import com.hafidtech.ecommerceapi.dto.AddProductInCartDto;
+import com.hafidtech.ecommerceapi.dto.CartItemsDto;
+import com.hafidtech.ecommerceapi.dto.OrderDto;
 import com.hafidtech.ecommerceapi.entity.CartItems;
 import com.hafidtech.ecommerceapi.entity.Order;
 import com.hafidtech.ecommerceapi.entity.Product;
@@ -16,7 +18,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import javax.swing.text.html.Option;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class CartServiceImpl implements CartService {
@@ -65,5 +69,19 @@ public class CartServiceImpl implements CartService {
             }
 
         }
+    }
+
+    public OrderDto getCartByUserId(Long userId) {
+        Order activeOrder = orderRepository.findByUserIdAndOrderStatus(userId, OrderStatus.Pending);
+        List<CartItemsDto> cartItemsDtoList = activeOrder.getCartItems().stream().map(CartItems::getCartDto).collect(Collectors.toList());
+        OrderDto orderDto = new OrderDto();
+        orderDto.setAmount(activeOrder.getAmount());
+        orderDto.setId(activeOrder.getId());
+        orderDto.setOrderStatus(activeOrder.getOrderStatus());
+        orderDto.setDiscount(activeOrder.getDiscount());
+        orderDto.setTotalAmount(activeOrder.getTotalAmount());
+
+        return orderDto;
+
     }
 }
